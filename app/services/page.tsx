@@ -7,7 +7,7 @@ import ProcessSteps from "@/components/ProcessSteps";
 import "./services.css";
 
 export const metadata: Metadata = {
-  title: "시공 서비스 | 호용샤시",
+  title: "시공 서비스 | 국민창호",
   description:
     "샤시 교체, 이중창과 단열 시공, 방범창·방충망 등 우리 집에 맞는 창호 시공을 안내합니다.",
 };

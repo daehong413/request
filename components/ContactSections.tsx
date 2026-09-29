@@ -73,7 +73,7 @@ export default function ContactSections() {
                 </ul>
               </div>
               <div className="contact-compare-detail">
-                <span>호용샤시 견적 상담</span>
+                <span>국민창호 견적 상담</span>
                 <h3>
                   하나씩 확인하고,
                   <br />

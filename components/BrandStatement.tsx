@@ -65,7 +65,7 @@ export default function BrandStatement() {
           </p>
           <div className="brand statement-logo brand-step" data-step="4">
             <WindowMark />
-            <span>호용샤시</span>
+            <span>국민창호</span>
           </div>
         </div>
       </div>

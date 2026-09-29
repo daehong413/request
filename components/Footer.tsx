@@ -13,8 +13,7 @@ export default function Footer() {
             </Link>
             <p className="footer-tagline">여닫을 때마다, 한결같이.</p>
             <p className="footer-details">
-              {siteConfig.address}
-              <br />
+              {siteConfig.address && <>{siteConfig.address}<br /></>}
               {siteConfig.regNumber}
             </p>
           </div>

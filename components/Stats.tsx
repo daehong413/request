@@ -24,10 +24,10 @@ const stats = [
 
 export default function Stats() {
   return (
-    <section className="stats-section" aria-label="숫자로 보는 호용샤시">
+    <section className="stats-section" aria-label="숫자로 보는 국민창호">
       <div className="container-content stats-layout">
         <div className="stats-intro">
-          <p className="stats-kicker">호용샤시가 쌓아온 기록</p>
+          <p className="stats-kicker">국민창호가 쌓아온 기록</p>
           <h2 className="stats-heading">
             한 집, 한 집.
             <br />

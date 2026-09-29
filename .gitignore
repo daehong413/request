@@ -11,6 +11,7 @@ node_modules/
 *.tsbuildinfo
 
 # Local agent settings and design references
+/.vscode/
 /.agent/
 /.agents/
 /design-system/

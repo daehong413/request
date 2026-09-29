@@ -23,7 +23,7 @@ export default function ServiceCards() {
     <section className="bg-paper border-b border-line">
       <div className="container-content py-16 md:py-20">
         <h2 className="text-[26px] md:text-[30px] font-bold text-ink tracking-tight2 mb-10">
-          호용샤시가 하는 일
+          국민창호가 하는 일
         </h2>
         <div className="grid sm:grid-cols-3 gap-px bg-line">
           {services.map((s) => (

@@ -17,7 +17,7 @@ export default function FounderMessage() {
             <span className="photo-note">공간의 시작은, 좋은 창에서.</span>
           </div>
           <div className="story-copy">
-            <p className="eyebrow">호용샤시의 시공 기준</p>
+            <p className="eyebrow">국민창호의 시공 기준</p>
             <h2 className="section-title">
               눈에 보이지 않는 곳에
               <br />
@@ -35,7 +35,7 @@ export default function FounderMessage() {
               상담한 마음 그대로, 오래 편안한 공간을 만듭니다.
             </p>
             <Link href="/about" className="text-link">
-              호용샤시의 이야기
+              국민창호의 이야기
               <Arrow diagonal />
             </Link>
           </div>

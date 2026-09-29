@@ -293,6 +293,11 @@
   letter-spacing: -0.035em;
   transition: background 0.2s;
 }
+.estimate-submit:disabled,
+.estimate-edit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
 .estimate-submit:hover {
   background: var(--estimate-dark);
 }

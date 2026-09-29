@@ -1,11 +1,9 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { siteConfig } from "@/lib/site-config";
 import {
   Inquiry,
   InquiryErrors,
-  inquiryEmailBody,
   scopes,
   sizes,
   validateInquiry,
@@ -24,6 +22,10 @@ const fieldIds: Record<string, string> = {
 export default function ContactForm({ regionName }: { regionName?: string }) {
   const [expanded, setExpanded] = useState(false);
   const [review, setReview] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState("");
+  const sendLock = useRef(false);
   const [data, setData] = useState<Inquiry>({
     address: "",
     size: "",
@@ -35,6 +37,32 @@ export default function ContactForm({ regionName }: { regionName?: string }) {
   });
   const [errors, setErrors] = useState<InquiryErrors>({});
   const heading = useRef<HTMLHeadingElement>(null);
+  async function sendInquiry() {
+    if (sendLock.current || sent) return;
+    sendLock.current = true;
+    setSending(true);
+    setSendError("");
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await response.json();
+      if (!response.ok || result.success !== true) {
+        throw new Error(result.error || "메일 전송에 실패했습니다. 잠시 후 다시 시도해주세요.");
+      }
+      setSent(true);
+      requestAnimationFrame(() => heading.current?.focus());
+    } catch (error) {
+      setSendError(error instanceof Error && error.message !== "Failed to fetch"
+        ? error.message
+        : "전송 결과를 확인하지 못했습니다. 네트워크 연결을 확인하거나 전화로 문의해주세요.");
+    } finally {
+      sendLock.current = false;
+      setSending(false);
+    }
+  }
   function update<K extends keyof Inquiry>(key: K, value: Inquiry[K]) {
     setData((previous) => ({ ...previous, [key]: value }));
     setErrors((previous) => ({ ...previous, [key]: undefined }));
@@ -51,6 +79,7 @@ export default function ContactForm({ regionName }: { regionName?: string }) {
   }
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (review) return;
     if (!expanded) {
       expand();
       return;
@@ -112,10 +141,14 @@ export default function ContactForm({ regionName }: { regionName?: string }) {
       id="estimate-form"
     >
       <h2 ref={heading} tabIndex={-1}>
-        {review ? "상담 내용을 확인해주세요" : "우리 집 무료 견적 상담"}
+        {sent ? "상담 문의가 전송되었습니다" : review ? "상담 내용을 확인해주세요" : "우리 집 무료 견적 상담"}
       </h2>
       <form onSubmit={submit} noValidate>
-        {!review ? (
+        {sent ? (
+          <div className="estimate-review" role="status">
+            <p>남겨주신 내용을 확인한 뒤 입력하신 연락처로 안내해드리겠습니다.</p>
+          </div>
+        ) : !review ? (
           <>
             <div className="estimate-field">
               <label
@@ -252,9 +285,7 @@ export default function ContactForm({ regionName }: { regionName?: string }) {
                     {errors.confirmed}
                   </p>
                 )}
-                <p className="estimate-field-help">
-                  내용 확인 후 이메일 앱에서 문의를 보내실 수 있습니다.
-                </p>
+
               </div>
             )}
             <button type="submit" className="estimate-submit">
@@ -300,21 +331,26 @@ export default function ContactForm({ regionName }: { regionName?: string }) {
               ))}
             </dl>
             <p className="estimate-field-help">
-              아직 문의가 전송되지 않았습니다. 이메일 앱에서 보내기를
-              완료해주세요.
+              아래 버튼을 누르면 상담 내용이 담당자에게 이메일로 전송됩니다.
             </p>
-            <a
+            <button
+              type="button"
               className="estimate-submit"
-              href={`mailto:${siteConfig.email}?subject=${encodeURIComponent(`[창호 견적 상담] ${regionName ? `${regionName} · ` : ""}${data.scope}`)}&body=${encodeURIComponent(inquiryEmailBody(data))}`}
+              onClick={sendInquiry}
+              disabled={sending}
+              aria-busy={sending}
             >
-              이메일로 상담 문의하기
+              {sending ? "상담 문의 전송 중…" : "이메일로 상담 문의하기"}
               <Arrow diagonal />
-            </a>
+            </button>
+            {sendError && <p className="estimate-error" role="alert">{sendError}</p>}
             <button
               className="estimate-edit"
               type="button"
+              disabled={sending}
               onClick={() => {
                 setReview(false);
+                setSendError("");
                 requestAnimationFrame(() => heading.current?.focus());
               }}
             >

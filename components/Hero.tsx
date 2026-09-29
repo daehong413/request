@@ -50,7 +50,7 @@ export default function Hero() {
           </div>
           <div className="hero-caption">
             <span className="status-dot" />
-            기본을 지키는 시공, 호용샤시
+            기본을 지키는 시공, 국민창호
           </div>
           <a
             href="#services"

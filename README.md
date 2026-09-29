@@ -25,7 +25,7 @@ Vercel, Netlify 등에 그대로 배포 가능합니다.
 
 ```ts
 export const siteConfig = {
-  name: "호용샤시",          // 실제 상호명
+  name: "국민창호",          // 실제 상호명
   phone: "1544-0000",       // 실제 전화번호
   phoneHref: "tel:15440000",
   kakaoUrl: "...",          // 카카오톡 채널 URL
@@ -46,7 +46,24 @@ export const siteConfig = {
 - `app/about/page.tsx`의 연혁(history) — 실제 창업 연도와 이력으로 교체
 - `components/Testimonials.tsx` — 실제 고객 후기로 교체
 - 시공 사진: `public/` 폴더에 이미지를 넣고 각 컴포넌트의 일러스트(SVG) 자리에 `next/image`로 교체
-- `components/ContactForm.tsx`의 `handleSubmit` — 실제로 문의가 이메일/DB로 전송되도록 API 라우트 연결 (현재는 화면에 "접수됨" 메시지만 표시)
+
+## 상담 이메일 발송
+
+견적 문의의 확인 화면에서 **이메일로 상담 문의하기**를 누르면 `/api/contact`가 다우오피스 SMTP로 직접 발송합니다. 이메일 앱을 열지 않습니다.
+
+메일은 `lib/contact-email.ts`의 HTML 템플릿으로 발송하며, 일반 텍스트 본문도 함께 포함합니다. 고객 이름·연락처, 시공 정보, 문의 내용을 표시합니다. 사용자 입력은 HTML 이스케이프 처리하며 문의 내용의 줄바꿈을 유지합니다.
+
+`.env.local`에 아래 값을 설정하고 개발 서버를 재시작하세요. 배포 환경에도 같은 환경변수를 등록해야 합니다.
+
+```dotenv
+DAOU_SMTP_USER=실제_다우오피스_메일계정
+DAOU_SMTP_PASSWORD=실제_메일계정_비밀번호
+CONTACT_EMAIL_TO=dh@kmwindow.com
+```
+
+수신 주소를 생략하면 `lib/site-config.ts`의 이메일을 사용합니다. 발신 주소는 인증한 계정으로 고정됩니다. 비밀번호는 서버에서만 사용하며 `.env.local`은 Git에 포함되지 않습니다.
+
+SMTP 설정은 `outbound.daouoffice.com:465`, TLS 사용입니다. 계정의 SMTP 사용 권한과 배포 서버의 SMTP 외부 연결 허용 여부를 확인하세요. 서버가 메일을 수락한 경우에만 전송 완료를 표시하며, 최종 받은편지함 도착까지 보장하지는 않습니다. 운영 배포 시 호스팅의 방화벽/요청 제한으로 공개 `/api/contact` 엔드포인트의 반복 발송을 제한하세요.
 
 ## 디자인 톤
 
@@ -55,6 +72,30 @@ export const siteConfig = {
 - 폰트: Pretendard (한글 가독성이 좋은 무료 웹폰트, CDN으로 불러옴)
 
 ## 지역별 견적 문의 SEO
+
+### 구글·네이버 사이트 등록
+
+Vercel 프로젝트의 Settings → Environment Variables에서 Production 환경에 아래 값을 설정하고 재배포합니다. 로컬 확인 시에는 `.env.local`을 사용합니다.
+
+```dotenv
+SITE_URL=https://kmwindow.com
+GOOGLE_SITE_VERIFICATION=구글_메타태그의_content_값
+NAVER_SITE_VERIFICATION=네이버_메타태그의_content_값
+```
+
+소유 확인 값은 실제 발급받은 값만 넣습니다. 태그 전체가 아니라 `content="..."` 안쪽 문자열입니다. 입력한 값은 사이트 `<head>`의 `google-site-verification` / `naver-site-verification` 메타태그로 출력됩니다. 소유 확인 후에도 설정을 유지하세요.
+
+1. [Google Search Console](https://search.google.com/search-console)에서 **URL 접두어** 속성에 대표 HTTPS 주소를 추가하고 **HTML 태그** 방식으로 확인 값을 받습니다. 도메인 속성을 선택했다면 메타태그 대신 DNS TXT 방식으로 인증해야 합니다.
+2. [네이버 서치어드바이저](https://searchadvisor.naver.com/)의 웹마스터 도구에서 같은 대표 주소를 등록하고 **HTML 태그** 방식의 확인 값을 받습니다.
+3. 위 환경변수를 등록한 뒤 재배포하고, 실제 홈페이지의 HTML 소스에 두 메타태그가 있는지 확인합니다. 각 서비스에서 소유 확인을 완료합니다.
+4. 구글의 **Sitemaps**, 네이버의 **요청 → 사이트맵 제출**에서 `https://kmwindow.com/sitemap.xml`을 제출합니다. 먼저 사이트맵이 열리고 실제 도메인의 URL들이 포함되는지 확인하세요.
+5. `/robots.txt`에서 수집 허용과 사이트맵 주소를 확인합니다. 구글 URL 검사 및 네이버 웹 페이지 수집 요청으로 홈페이지와 주요 페이지를 확인합니다.
+
+`SITE_URL`을 비워두면 검색 수집 차단과 빈 사이트맵이 적용됩니다. 환경변수 변경은 재배포해야 반영됩니다. Vercel 배포 보호 등으로 실제 사이트에 로그인이 필요한 경우 검색 로봇이 접근할 수 없습니다. 소유 확인·사이트맵 제출은 코드 추가만으로 완료되지 않으며 각 서비스에서 직접 진행해야 합니다.
+
+공식 안내: [구글 소유 확인](https://support.google.com/webmasters/answer/9008080?hl=ko), [네이버 검색 로봇 설정](https://searchadvisor.naver.com/guide/seo-basic-robots).
+
+### 지역별 페이지
 
 짧은 한글 URL을 사용합니다: `/contact/수원`, `/contact/영통`, `/contact/망포`.
 `lib/data/contact-regions.json`에서 공식 지역 목록과 URL을 관리하고, `lib/contact-regions.ts`에서 공통 검색 설명과 상담 안내를 생성합니다. 중복 지역 등록 없이 JSON만 기준으로 사용합니다. 미등록 지역은 404입니다. 동명이 지역은 서로 다른 slug를 지정하세요.

@@ -7,9 +7,9 @@ import { Arrow, WindowMark } from "@/components/Icons";
 import { siteConfig } from "@/lib/site-config";
 import "./about.css";
 export const metadata: Metadata = {
-  title: "회사소개 | 호용샤시",
+  title: "회사소개 | 국민창호",
   description:
-    "호용샤시가 하는 일과 고객과 함께 결정하는 시공 범위, 상담과 현장에서 정보를 나누는 방식을 소개합니다.",
+    "국민창호가 하는 일과 고객과 함께 결정하는 시공 범위, 상담과 현장에서 정보를 나누는 방식을 소개합니다.",
 };
 const work = [
   [
@@ -34,7 +34,7 @@ export default function AboutPage() {
       <section className="about-hero">
         <div className="about-hero-copy">
           <p className="about-hero-eyebrow">
-            호용샤시 <span>회사소개</span>
+            국민창호 <span>회사소개</span>
           </p>
           <h1>
             창을 고치는 일.
@@ -50,7 +50,7 @@ export default function AboutPage() {
             <br />그 집에 맞는 창을 생각합니다.
           </p>
           <a href="#about-work" className="about-hero-link">
-            호용샤시 알아보기 <Arrow />
+            국민창호 알아보기 <Arrow />
           </a>
         </div>
         <figure className="about-workshop">
@@ -84,7 +84,7 @@ export default function AboutPage() {
           <div className="about-section-top">
             <span>우리가 하는 일</span>
             <h2>
-              호용샤시는
+              국민창호는
               <br />
               이런 일을 합니다.
             </h2>
@@ -158,7 +158,7 @@ export default function AboutPage() {
         <div className="container-content about-contact-layout">
           <div className="about-signature">
             <WindowMark />
-            <span>호용샤시</span>
+            <span>국민창호</span>
             <p>우리 집 이야기를 들려주세요.</p>
           </div>
           <div>

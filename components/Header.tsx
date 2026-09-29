@@ -37,7 +37,7 @@ export default function Header() {
           <WindowMark />
           <span>
             {siteConfig.name}
-            <small>HOYONG WINDOW</small>
+            <small>KOOKMIN WINDOW</small>
           </span>
         </Link>
         <nav className="desktop-nav" aria-label="주 메뉴">
