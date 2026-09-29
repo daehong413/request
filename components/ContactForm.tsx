@@ -146,7 +146,7 @@ export default function ContactForm({ regionName }: { regionName?: string }) {
       <form onSubmit={submit} noValidate>
         {sent ? (
           <div className="estimate-review" role="status">
-            <p>남겨주신 내용을 확인한 뒤 입력하신 연락처로 안내해드리겠습니다.</p>
+            <p style={{ textAlign: "center" }}>남겨주신 내용을 확인한 뒤 입력하신 연락처로 안내해드리겠습니다.</p>
           </div>
         ) : !review ? (
           <>

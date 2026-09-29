@@ -9,9 +9,10 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
-  // Use the public site origin when HTTPS terminates at a reverse proxy.
-  const allowedOrigin = getSiteOrigin() || new URL(request.url).origin;
-  if (origin && origin !== allowedOrigin) {
+  // Allow the origin serving this form, including localhost and preview URLs.
+  // Also allow the public origin when a reverse proxy terminates HTTPS.
+  const allowedOrigins = new Set([new URL(request.url).origin, getSiteOrigin()]);
+  if (origin && !allowedOrigins.has(origin)) {
     return NextResponse.json({ error: "허용되지 않은 요청입니다." }, { status: 403 });
   }
   if (!request.headers.get("content-type")?.includes("application/json")) {
