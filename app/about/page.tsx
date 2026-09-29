@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
+import { PageBreadcrumb } from "@/components/SeoData";
 import Image from "next/image";
 import Link from "next/link";
 import AboutScope from "@/components/AboutScope";
@@ -6,11 +7,11 @@ import Reveal from "@/components/Reveal";
 import { Arrow, WindowMark } from "@/components/Icons";
 import { siteConfig } from "@/lib/site-config";
 import "./about.css";
-export const metadata: Metadata = {
-  title: "회사소개 | 국민창호",
-  description:
-    "국민창호가 하는 일과 고객과 함께 결정하는 시공 범위, 상담과 현장에서 정보를 나누는 방식을 소개합니다.",
-};
+export const metadata = pageMetadata(
+  "국민창호 회사소개 | 상담부터 창호 시공까지",
+  "전국 창호 교체를 상담하는 국민창호를 소개합니다. 샤시·유리 사양과 교체 범위, 실측과 시공 과정에서 함께 확인하는 항목을 안내합니다.",
+  "/about",
+);
 const work = [
   [
     "교체 상담",
@@ -31,6 +32,7 @@ const work = [
 export default function AboutPage() {
   return (
     <div className="about-page">
+      <PageBreadcrumb items={[{ name: "회사소개", path: "/about" }]} />
       <section className="about-hero">
         <div className="about-hero-copy">
           <p className="about-hero-eyebrow">

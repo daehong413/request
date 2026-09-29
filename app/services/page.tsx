@@ -1,3 +1,5 @@
+import { pageMetadata } from "@/lib/seo";
+import { PageBreadcrumb } from "@/components/SeoData";
 import Link from "next/link";
 import Image from "next/image";
 import { Arrow, WindowIllustration } from "@/components/Icons";
@@ -6,11 +8,11 @@ import CTASection from "@/components/CTASection";
 import ProcessSteps from "@/components/ProcessSteps";
 import "./services.css";
 
-export const metadata: Metadata = {
-  title: "시공 서비스 | 국민창호",
-  description:
-    "샤시 교체, 이중창과 단열 시공, 방범창·방충망 등 우리 집에 맞는 창호 시공을 안내합니다.",
-};
+export const metadata = pageMetadata(
+  "샤시 교체·이중창 단열·방충망 시공 | 국민창호",
+  "전국 샤시 교체, 이중창 단열, 방범창·방충망 시공 안내. 창틀과 유리 사양, 철거·마감 범위를 확인하고 우리 집에 맞는 창호를 상담하세요.",
+  "/services",
+);
 
 const details = [
   {
@@ -48,6 +50,7 @@ const details = [
 export default function ServicesPage() {
   return (
     <>
+      <PageBreadcrumb items={[{ name: "시공 서비스", path: "/services" }]} />
       <section className="page-hero services-hero">
         <div className="container-content services-hero-layout">
           <div className="services-hero-copy">
@@ -122,4 +125,3 @@ export default function ServicesPage() {
     </>
   );
 }
-import type { Metadata } from "next";

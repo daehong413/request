@@ -12,7 +12,7 @@ export const siteConfig = {
   email: "dh@kmwindow.com",
   address: "", // 실제 사업장 주소가 준비되면 입력해주세요.
   businessHours: "평일 09:00 – 18:00 (토요일 상담 가능)",
-  regNumber: "사업자등록번호 000-00-00000",
+  regNumber: "",
   social: {
     // blog: "https://blog.naver.com/hangyeolsash",
     // instagram: "https://www.instagram.com/hangyeolsash",

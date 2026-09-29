@@ -1,3 +1,4 @@
+import { PageBreadcrumb } from "@/components/SeoData";
 import ContactSections from "@/components/ContactSections";
 import ContactForm from "@/components/ContactForm";
 import CountUp from "@/components/CountUp";
@@ -32,9 +33,13 @@ export default function ContactPageContent({
 }: {
   region?: ContactRegion;
 }) {
-  const directory = region ? [] : contactRegionChildren();
+  const directory = contactRegionChildren(region?.slug);
   return (
     <div className="estimate-page">
+      <PageBreadcrumb items={[
+        { name: "전국 견적 문의", path: "/contact" },
+        ...(region ? [...regionAncestors(region), region].map((item) => ({ name: item.name, path: regionPath(item) })) : []),
+      ]} />
       <section className="estimate-hero" aria-labelledby="estimate-title">
         <div className="estimate-ambient" aria-hidden="true" />
         <div className="estimate-layout">
@@ -42,7 +47,7 @@ export default function ContactPageContent({
             <p className="estimate-kicker">
               {region
                 ? `${region.fullName} 창호 상담`
-                : "주소 하나로 시작하는, 우리 집 창호 상담"}
+                : "전국 창호 시공 · 우리 집 주소로 시작하는 상담"}
             </p>
             <h1 id="estimate-title">
               {region ? `${region.name} 창호 교체,` : "우리 집 조건에 맞는"}
@@ -103,7 +108,7 @@ export default function ContactPageContent({
             <div className="contact-region-copy">
               <p className="contact-region-eyebrow">{region.fullName}</p>
               <h2 id="region-guide-title">
-                {region.name}의 우리 집,
+                {region.fullName}의 우리 집,
                 <br />
                 어떤 창을 바꾸시나요?
               </h2>
@@ -140,15 +145,15 @@ export default function ContactPageContent({
           </Reveal>
         </div>
       </section>
-      {!region && (
+      {directory.length > 0 && (
         <nav
           className="contact-region-directory container-content"
           aria-label="지역별 창호 상담"
         >
-          <h2>지역별 창호 상담</h2>
+          <h2>{region ? `${region.name} 세부 지역별 창호 상담` : "전국 지역별 창호 상담"}</h2>
           <div className="contact-region-links">
             {directory.map((item) => (
-              <Link key={item.slug} href={regionPath(item)}>
+              <Link key={item.slug} href={regionPath(item)} prefetch={false}>
                 {item.name} 견적 상담
               </Link>
             ))}

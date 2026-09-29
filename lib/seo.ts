@@ -20,6 +20,13 @@ export function getSiteOrigin(): string | undefined {
   return url.origin;
 }
 
+export function isSearchIndexable(): boolean {
+  return (
+    Boolean(getSiteOrigin()) &&
+    !["preview", "development"].includes(process.env.VERCEL_ENV ?? "")
+  );
+}
+
 export function pageMetadata(
   title: string,
   description: string,
@@ -27,6 +34,7 @@ export function pageMetadata(
 ): Metadata {
   const origin = getSiteOrigin();
   const url = origin ? new URL(path, origin).href : undefined;
+  const image = origin ? new URL("/og-image.png", origin).href : undefined;
   return {
     title,
     description,
@@ -38,8 +46,13 @@ export function pageMetadata(
       siteName: siteConfig.name,
       locale: "ko_KR",
       type: "website",
+      images: image ? [{ url: image, width: 1200, height: 630, alt: "국민창호 · 전국 샤시 교체와 창호 견적 상담" }] : [],
     },
-    twitter: { card: "summary", title, description },
-    robots: { index: Boolean(origin), follow: true },
+    twitter: { card: "summary_large_image", title, description, images: image ? [image] : [] },
+    robots: {
+      index: isSearchIndexable(),
+      follow: true,
+      googleBot: { index: isSearchIndexable(), follow: true, "max-image-preview": "large" },
+    },
   };
 }

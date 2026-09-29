@@ -4,16 +4,26 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FloatingConsult from "@/components/FloatingConsult";
 import { siteConfig } from "@/lib/site-config";
-import { getSiteOrigin } from "@/lib/seo";
+import { getSiteOrigin, isSearchIndexable } from "@/lib/seo";
 
+const siteOrigin = getSiteOrigin();
 const googleVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 const naverVerification = process.env.NAVER_SITE_VERIFICATION?.trim();
 
 export const metadata: Metadata = {
-  title: `${siteConfig.name} | ${siteConfig.tagline}`,
+  metadataBase: siteOrigin ? new URL(siteOrigin) : undefined,
+  title: `${siteConfig.name} | 전국 샤시 교체·창호 견적 상담`,
+  applicationName: siteConfig.name,
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icon.png", type: "image/png", sizes: "192x192" },
+    ],
+    apple: "/apple-icon.png",
+  },
   description:
-    "샤시 교체, 이중창 단열 시공, 방범창 제작까지 직영팀이 책임 시공합니다.",
-  robots: { index: Boolean(getSiteOrigin()), follow: true },
+    "전국 샤시 교체, 이중창 단열 시공, 방범창·방충망 상담. 우리 집 주소와 교체 범위를 알려주시면 실측과 견적을 안내합니다.",
+  robots: { index: isSearchIndexable(), follow: true },
   verification: {
     ...(googleVerification ? { google: googleVerification } : {}),
     ...(naverVerification

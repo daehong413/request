@@ -12,10 +12,10 @@ export default function Footer() {
               <span>{siteConfig.name}</span>
             </Link>
             <p className="footer-tagline">여닫을 때마다, 한결같이.</p>
-            <p className="footer-details">
+            {(siteConfig.address || siteConfig.regNumber) && <p className="footer-details">
               {siteConfig.address && <>{siteConfig.address}<br /></>}
               {siteConfig.regNumber}
-            </p>
+            </p>}
           </div>
           <nav aria-label="푸터 메뉴">
             {siteConfig.nav.map((item) => (
@@ -26,7 +26,7 @@ export default function Footer() {
             ))}
           </nav>
           <div className="footer-contact">
-            <span>창호 상담 문의</span>
+            <span>전국 창호 시공 · 상담 문의</span>
             <a href={siteConfig.phoneHref}>{siteConfig.phone}</a>
             <p>{siteConfig.businessHours}</p>
             <a className="footer-email" href={`mailto:${siteConfig.email}`}>

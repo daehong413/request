@@ -24,6 +24,18 @@ export const contactRegions: ContactRegion[] = regionData.regions.map(
 const regionsBySlug = new Map(
   contactRegions.map((region) => [region.slug, region]),
 );
+const regionsByCode = new Map(contactRegions.map((region) => [region.code, region]));
+const legacyRegionsBySlug = new Map(
+  regionData.legacySlugs.map(({ slug, code }) => [slug, regionsByCode.get(code)]),
+);
+
+export function getLegacyContactRegion(slug: string) {
+  try {
+    return legacyRegionsBySlug.get(decodeURIComponent(slug).normalize("NFC"));
+  } catch {
+    return undefined;
+  }
+}
 
 // 모든 페이지에 전체 목록을 반복하지 않고, 상위 → 하위 지역으로 탐색합니다.
 export function contactRegionChildren(parentSlug?: string) {

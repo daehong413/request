@@ -9,6 +9,7 @@ node_modules/
 /.turbo/
 /.vercel/
 *.tsbuildinfo
+/scripts/__pycache__/
 
 # Local agent settings and design references
 /.vscode/
