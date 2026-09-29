@@ -18,8 +18,7 @@ node_modules/
 /designsystem/
 
 # Local environment (keep the shared template)
-.env*
-!.env.example
+.env.example
 
 # Logs and OS files
 *.log
