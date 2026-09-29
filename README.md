@@ -3,12 +3,10 @@
 샤시(창호) 시공 업체용 홈페이지입니다. React + Next.js 14 (App Router) + TypeScript + Tailwind CSS로 만들었습니다.
 
 ## 실행 방법
-
 ```bash
 npm install
 npm run dev
 ```
-
 
 브라우저에서 http://localhost:3000 접속
 
