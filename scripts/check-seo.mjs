@@ -1,7 +1,8 @@
 // Read-only smoke checks against a production build: node scripts/check-seo.mjs http://localhost:3107
 import assert from 'node:assert/strict';
 const base = process.argv[2] ?? 'http://localhost:3107';
-const canonicalOrigin = process.env.SITE_URL ?? 'https://kmwindow.com';
+const configuredOrigin = process.env.SITE_URL ?? 'https://www.kmwindow.com';
+const canonicalOrigin = configuredOrigin === 'https://kmwindow.com' ? 'https://www.kmwindow.com' : configuredOrigin;
 const titles = new Set();
 for (const path of ['/', '/about', '/services', '/contact', '/contact/부산', '/contact/부산동', '/contact/망포동', '/contact/분당정자동']) {
   const response = await fetch(new URL(path, base));

@@ -78,7 +78,7 @@ SMTP 설정은 `outbound.daouoffice.com:465`, TLS 사용입니다. 계정의 SMT
 Vercel 프로젝트의 Settings → Environment Variables에서 Production 환경에 아래 값을 설정하고 재배포합니다. 로컬 확인 시에는 `.env.local`을 사용합니다.
 
 ```dotenv
-SITE_URL=https://kmwindow.com
+SITE_URL=https://www.kmwindow.com
 GOOGLE_SITE_VERIFICATION=구글_메타태그의_content_값
 NAVER_SITE_VERIFICATION=네이버_메타태그의_content_값
 ```
@@ -86,9 +86,9 @@ NAVER_SITE_VERIFICATION=네이버_메타태그의_content_값
 소유 확인 값은 실제 발급받은 값만 넣습니다. 태그 전체가 아니라 `content="..."` 안쪽 문자열입니다. 입력한 값은 사이트 `<head>`의 `google-site-verification` / `naver-site-verification` 메타태그로 출력됩니다. 소유 확인 후에도 설정을 유지하세요.
 
 1. [Google Search Console](https://search.google.com/search-console)에서 **URL 접두어** 속성에 대표 HTTPS 주소를 추가하고 **HTML 태그** 방식으로 확인 값을 받습니다. 도메인 속성을 선택했다면 메타태그 대신 DNS TXT 방식으로 인증해야 합니다.
-2. [네이버 서치어드바이저](https://searchadvisor.naver.com/)의 웹마스터 도구에서 같은 대표 주소를 등록하고 **HTML 태그** 방식의 확인 값을 받습니다.
+2. [네이버 서치어드바이저](https://searchadvisor.naver.com/)의 웹마스터 도구에서 `https://www.kmwindow.com`을 등록하고 **HTML 태그** 방식의 확인 값을 받습니다. `https://kmwindow.com`은 운영 서버에서 `www`로 리디렉션되므로 URL 검사와 수집 요청에도 `www` 주소를 사용합니다.
 3. 위 환경변수를 등록한 뒤 재배포하고, 실제 홈페이지의 HTML 소스에 두 메타태그가 있는지 확인합니다. 각 서비스에서 소유 확인을 완료합니다.
-4. 구글의 **Sitemaps**, 네이버의 **요청 → 사이트맵 제출**에서 `https://kmwindow.com/sitemap.xml`을 제출합니다. 먼저 사이트맵이 열리고 실제 도메인의 URL들이 포함되는지 확인하세요.
+4. 구글의 **Sitemaps**, 네이버의 **요청 → 사이트맵 제출**에서 `https://www.kmwindow.com/sitemap.xml`을 제출합니다. 먼저 사이트맵이 열리고 실제 도메인의 URL들이 포함되는지 확인하세요.
 5. `/robots.txt`에서 수집 허용과 사이트맵 주소를 확인합니다. 구글 URL 검사 및 네이버 웹 페이지 수집 요청으로 홈페이지와 주요 페이지를 확인합니다.
 
 `SITE_URL`을 비워두면 검색 수집 차단과 빈 사이트맵이 적용됩니다. 환경변수 변경은 재배포해야 반영됩니다. Vercel 배포 보호 등으로 실제 사이트에 로그인이 필요한 경우 검색 로봇이 접근할 수 없습니다. 소유 확인·사이트맵 제출은 코드 추가만으로 완료되지 않으며 각 서비스에서 직접 진행해야 합니다.
@@ -118,7 +118,7 @@ NAVER_SITE_VERIFICATION=네이버_메타태그의_content_값
 
 메인에는 국민창호의 Organization·WebSite·전국 시공 Service 구조화 데이터를, 하위 페이지에는 BreadcrumbList를 제공합니다. 사업장 주소와 사업자등록번호는 실제 정보가 확인되면 `lib/site-config.ts`에 입력합니다. 임시 사업자번호는 표시하지 않습니다.
 
-`VERCEL_ENV=preview` 또는 `development`에서는 noindex, 수집 차단, 빈 사이트맵을 적용해 미리보기 주소의 검색 노출을 방지합니다. Production에서는 `SITE_URL=https://kmwindow.com` 기준으로 생성합니다. 사이트맵에 실제 수정일이 아닌 빌드 날짜를 넣지 않습니다. 지역 링크의 자동 prefetch는 비활성화해 대량 페이지의 불필요한 요청을 줄입니다.
+`VERCEL_ENV=preview` 또는 `development`에서는 noindex, 수집 차단, 빈 사이트맵을 적용해 미리보기 주소의 검색 노출을 방지합니다. Production에서는 `SITE_URL=https://www.kmwindow.com` 기준으로 생성합니다. Vercel Production 환경 변수도 같은 주소로 설정하고 재배포해야 합니다. 사이트맵에 실제 수정일이 아닌 빌드 날짜를 넣지 않습니다. 지역 링크의 자동 prefetch는 비활성화해 대량 페이지의 불필요한 요청을 줄입니다.
 
 지역 페이지는 상담과 지역 탐색을 위한 안내입니다. 검색 노출을 강화하려면 해당 지역의 실제 시공 사례·사진·작업 범위를 지속적으로 추가해야 합니다. 구조화 데이터나 지역 페이지 수만으로 상위 노출이 보장되지는 않습니다.
 

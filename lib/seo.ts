@@ -17,6 +17,8 @@ export function getSiteOrigin(): string | undefined {
       "SITE_URL에는 경로 없는 실제 사이트 주소를 입력하세요. 예: https://your-domain.kr",
     );
   }
+  // 운영 도메인은 Vercel에서 www로 이동하므로 기존 환경 변수 값도 같은 주소로 정규화합니다.
+  if (url.origin === "https://kmwindow.com") return "https://www.kmwindow.com";
   return url.origin;
 }
 
