@@ -1,4 +1,4 @@
-import { PageBreadcrumb } from "@/components/SeoData";
+import { PageBreadcrumb, RegionServiceSeoData } from "@/components/SeoData";
 import ContactSections from "@/components/ContactSections";
 import ContactForm from "@/components/ContactForm";
 import CountUp from "@/components/CountUp";
@@ -36,6 +36,7 @@ export default function ContactPageContent({
   const directory = contactRegionChildren(region?.slug);
   return (
     <div className="estimate-page">
+      {region && <RegionServiceSeoData region={region} />}
       <PageBreadcrumb items={[
         { name: "전국 견적 문의", path: "/contact" },
         ...(region ? [...regionAncestors(region), region].map((item) => ({ name: item.name, path: regionPath(item) })) : []),
@@ -46,14 +47,15 @@ export default function ContactPageContent({
           <div className="estimate-intro">
             <p className="estimate-kicker">
               {region
-                ? `${region.fullName} 창호 상담`
+                ? `${siteConfig.name} · ${region.fullName} 창호 상담`
                 : "전국 창호 시공 · 우리 집 주소로 시작하는 상담"}
             </p>
             <h1 id="estimate-title">
               {region ? `${region.name} 창호 교체,` : "우리 집 조건에 맞는"}
               <br />
-              창호 견적을 만나보세요!
+              {region ? `${siteConfig.name}에 상담하세요.` : "창호 견적을 만나보세요!"}
             </h1>
+            {region && <p className="body-copy">{region.description}</p>}
             <div
               className="estimate-services"
               aria-label="상담 가능한 시공 서비스"
@@ -120,6 +122,21 @@ export default function ContactPageContent({
           </div>
         </section>
       )}
+      {directory.length > 0 && (
+        <nav
+          className="contact-region-directory container-content"
+          aria-label="지역별 창호 상담"
+        >
+          <h2>{region ? `${region.name} 세부 지역별 창호 상담` : "전국 지역별 창호 상담"}</h2>
+          <div className="contact-region-links">
+            {directory.map((item) => (
+              <Link key={item.slug} href={regionPath(item)} prefetch={false}>
+                {item.name} 창호 교체 상담
+              </Link>
+            ))}
+          </div>
+        </nav>
+      )}
       <ContactSections />
       <section className="estimate-guide" id="estimate-guide">
         <div className="container-content">
@@ -145,21 +162,6 @@ export default function ContactPageContent({
           </Reveal>
         </div>
       </section>
-      {directory.length > 0 && (
-        <nav
-          className="contact-region-directory container-content"
-          aria-label="지역별 창호 상담"
-        >
-          <h2>{region ? `${region.name} 세부 지역별 창호 상담` : "전국 지역별 창호 상담"}</h2>
-          <div className="contact-region-links">
-            {directory.map((item) => (
-              <Link key={item.slug} href={regionPath(item)} prefetch={false}>
-                {item.name} 견적 상담
-              </Link>
-            ))}
-          </div>
-        </nav>
-      )}
       <section className="estimate-photo-cta container-content">
         <div>
           <p>상담부터 편안하게 시작해보세요</p>

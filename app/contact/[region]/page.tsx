@@ -7,7 +7,6 @@ import {
   regionPath,
 } from "@/lib/contact-regions";
 import { pageMetadata } from "@/lib/seo";
-import { siteConfig } from "@/lib/site-config";
 import "../contact.css";
 
 type Props = { params: { region: string } };
@@ -30,7 +29,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: Props) {
   const region = resolveRegion(params.region);
   return pageMetadata(
-    `${region.fullName} 샤시 교체 · 창호 견적 | ${siteConfig.name}`,
+    region.title,
     region.description,
     regionPath(region),
   );

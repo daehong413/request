@@ -1,10 +1,12 @@
 // Read-only smoke checks against a production build: node scripts/check-seo.mjs http://localhost:3107
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const regions = JSON.parse(readFileSync(new URL('../lib/data/contact-regions.json', import.meta.url), 'utf8')).regions;
 const base = process.argv[2] ?? 'http://localhost:3107';
 const configuredOrigin = process.env.SITE_URL ?? 'https://www.kmwindow.com';
 const canonicalOrigin = configuredOrigin === 'https://kmwindow.com' ? 'https://www.kmwindow.com' : configuredOrigin;
 const titles = new Set();
-for (const path of ['/', '/about', '/services', '/contact', '/contact/부산', '/contact/부산동', '/contact/망포동', '/contact/분당정자동']) {
+for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '/contact/부산', '/contact/부산동', '/contact/망포동', '/contact/분당정자동', '/contact/장안정자동']) {
   const response = await fetch(new URL(path, base));
   assert.equal(response.status, 200, path);
   const html = await response.text();
@@ -24,6 +26,16 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/부산', '
   } else {
     const breadcrumb = data.find((entry) => entry['@type'] === 'BreadcrumbList');
     assert.equal(breadcrumb.itemListElement.at(-1).item, new URL(path, canonicalOrigin).href);
+    if (path.startsWith('/contact/')) {
+      const region = regions.find((item) => item.slug === path.split('/').at(-1));
+      assert.ok(title.includes(`국민창호 ${region.name} 창호 교체`), `${path}: brand, region and service title`);
+      const heading = html.match(/<h1[^>]*>(.*?)<\/h1>/s)?.[1];
+      assert.ok(heading.includes(`${region.name} 창호 교체`), `${path}: region and service H1`);
+      const service = data.find((entry) => entry['@type'] === 'Service');
+      assert.equal(service.areaServed.name, region.fullName, `${path}: correct service area`);
+      assert.equal(service.url, new URL(path, canonicalOrigin).href);
+      assert.ok(html.includes(service.description), `${path}: structured description is visible`);
+    }
   }
   console.log('PASS', path);
 }
@@ -37,14 +49,18 @@ assert.equal(missing.status, 404);
 assert.ok((await missing.text()).includes('content="noindex"'));
 const sitemap = await (await fetch(new URL('/sitemap.xml', base))).text();
 const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
-assert.equal(urls.length, 5355);
+assert.equal(urls.length, regions.length + 4);
+for (const region of regions) {
+  assert.ok(urls.includes(new URL(`/contact/${encodeURIComponent(region.slug)}`, canonicalOrigin).href), `sitemap: ${region.slug}`);
+}
 assert.equal(new Set(urls).size, urls.length);
 assert.ok(urls.every((url) => url.startsWith(canonicalOrigin + '/')));
 assert.ok(!urls.includes(new URL('/contact/망포', canonicalOrigin).href));
+assert.ok(urls.includes(new URL('/contact/부산', canonicalOrigin).href));
 const robots = await (await fetch(new URL('/robots.txt', base))).text();
 assert.ok(robots.includes('Allow: /'));
 assert.ok(robots.includes(`Sitemap: ${canonicalOrigin}/sitemap.xml`));
-for (const asset of ['/og-image.png', '/icon.png', '/icon.svg', '/apple-icon.png', '/naverddd4e9eccd9ed0d1dd3ddc4dff908242.html']) {
+for (const asset of ['/og-image.png', '/icon.png', '/icon.svg', '/apple-icon.png']) {
   assert.equal((await fetch(new URL(asset, base))).status, 200, asset);
 }
-console.log('PASS redirects, 404/noindex, 5,355 sitemap URLs, robots, images and Naver verification');
+console.log(`PASS redirects, 404/noindex, ${urls.length} sitemap URLs, robots and images`);

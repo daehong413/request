@@ -1,8 +1,26 @@
 import { getSiteOrigin } from "@/lib/seo";
 import { siteConfig } from "@/lib/site-config";
+import { regionPath, type ContactRegion } from "@/lib/contact-regions";
 
 function JsonLd({ data }: { data: Record<string, unknown> }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }} />;
+}
+
+export function RegionServiceSeoData({ region }: { region: ContactRegion }) {
+  const origin = getSiteOrigin();
+  if (!origin) return null;
+  const url = new URL(regionPath(region), origin).href;
+  return <JsonLd data={{
+    "@context": "https://schema.org",
+    "@type": "Service",
+    "@id": `${url}#service`,
+    name: `${siteConfig.name} ${region.fullName} 창호 교체 상담`,
+    description: region.description,
+    url,
+    serviceType: "창호 교체 상담",
+    areaServed: { "@type": "AdministrativeArea", name: region.fullName },
+    provider: { "@type": "Organization", "@id": `${origin}/#organization`, name: siteConfig.name, url: `${origin}/` },
+  }} />;
 }
 
 export function BusinessSeoData() {
