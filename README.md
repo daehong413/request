@@ -8,7 +8,6 @@
 npm install
 npm run dev
 ```
-
 개발 서버: http://localhost:3000
 
 ```bash
