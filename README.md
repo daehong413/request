@@ -15,6 +15,8 @@ npm run build
 npm start
 ```
 
+
+
 ## 환경변수
 
 로컬은 `.env.local`, 운영은 Vercel Production 환경변수에 설정합니다. 변경 후 서버 재시작 또는 재배포가 필요합니다.
