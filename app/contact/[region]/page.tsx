@@ -28,11 +28,15 @@ export function generateStaticParams() {
 
 export function generateMetadata({ params }: Props) {
   const region = resolveRegion(params.region);
-  return pageMetadata(
-    region.title,
-    region.description,
-    regionPath(region),
-  );
+  return {
+    ...pageMetadata(region.title, region.description, regionPath(region)),
+    // 지역별 고유 콘텐츠가 준비되기 전까지 상담용으로만 유지합니다.
+    robots: {
+      index: false,
+      follow: true,
+      googleBot: { index: false, follow: true },
+    },
+  };
 }
 
 export default function RegionContactPage({ params }: Props) {

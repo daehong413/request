@@ -17,7 +17,11 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
   assert.equal(new URL(html.match(/rel="canonical" href="([^"]+)"/)?.[1]).href, new URL(path, canonicalOrigin).href, `${path}: canonical`);
   assert.ok(html.includes('property="og:image"'), `${path}: OG image`);
   assert.ok(html.includes('content="summary_large_image"'), `${path}: social card`);
-  assert.ok(!html.includes('content="noindex'), `${path}: indexable`);
+  for (const name of ['robots', 'googlebot']) {
+    const directives = html.match(new RegExp(`<meta name="${name}" content="([^"]+)"`))?.[1]?.split(/,\s*/);
+    assert.ok(directives?.includes(path.startsWith('/contact/') ? 'noindex' : 'index'), `${path}: ${name} indexing`);
+    assert.ok(directives?.includes('follow'), `${path}: ${name} follow`);
+  }
   const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((match) => JSON.parse(match[1]));
   if (path === '/') {
     const graph = data.find((entry) => entry['@graph'])['@graph'];
@@ -49,14 +53,10 @@ assert.equal(missing.status, 404);
 assert.ok((await missing.text()).includes('content="noindex"'));
 const sitemap = await (await fetch(new URL('/sitemap.xml', base))).text();
 const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
-assert.equal(urls.length, regions.length + 4);
-for (const region of regions) {
-  assert.ok(urls.includes(new URL(`/contact/${encodeURIComponent(region.slug)}`, canonicalOrigin).href), `sitemap: ${region.slug}`);
-}
+assert.deepEqual(urls, ['/', '/about', '/services', '/contact'].map((path) => new URL(path, canonicalOrigin).href));
 assert.equal(new Set(urls).size, urls.length);
 assert.ok(urls.every((url) => url.startsWith(canonicalOrigin + '/')));
 assert.ok(!urls.includes(new URL('/contact/망포', canonicalOrigin).href));
-assert.ok(urls.includes(new URL('/contact/부산', canonicalOrigin).href));
 const robots = await (await fetch(new URL('/robots.txt', base))).text();
 assert.ok(robots.includes('Allow: /'));
 assert.ok(robots.includes(`Sitemap: ${canonicalOrigin}/sitemap.xml`));
