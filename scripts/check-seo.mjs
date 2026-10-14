@@ -60,7 +60,7 @@ assert.ok(!urls.includes(new URL('/contact/망포', canonicalOrigin).href));
 const robots = await (await fetch(new URL('/robots.txt', base))).text();
 assert.ok(robots.includes('Allow: /'));
 assert.ok(robots.includes(`Sitemap: ${canonicalOrigin}/sitemap.xml`));
-for (const asset of ['/og-image.png', '/icon.png', '/icon.svg', '/apple-icon.png']) {
+for (const asset of ['/og-image.png', '/favicon.ico', '/icon.png', '/icon.svg', '/apple-icon.png']) {
   assert.equal((await fetch(new URL(asset, base))).status, 200, asset);
 }
 console.log(`PASS redirects, 404/noindex, ${urls.length} sitemap URLs, robots and images`);
