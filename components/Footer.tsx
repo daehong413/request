@@ -24,6 +24,7 @@ export default function Footer() {
                 <Arrow diagonal />
               </Link>
             ))}
+            <Link href="/areas">시공 가능 지역<Arrow diagonal /></Link>
           </nav>
           <div className="footer-contact">
             <span>전국 창호 시공 · 상담 문의</span>

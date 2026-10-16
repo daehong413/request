@@ -7,8 +7,8 @@ import { Arrow } from "@/components/Icons";
 import { siteConfig } from "@/lib/site-config";
 import Link from "next/link";
 import {
-  contactRegionChildren,
   regionAncestors,
+  getServiceArea,
   regionPath,
   type ContactRegion,
 } from "@/lib/contact-regions";
@@ -33,7 +33,7 @@ export default function ContactPageContent({
 }: {
   region?: ContactRegion;
 }) {
-  const directory = contactRegionChildren(region?.slug);
+  const area = region && getServiceArea(region.slug);
   return (
     <div className="estimate-page">
       {region && <RegionServiceSeoData region={region} />}
@@ -115,27 +115,25 @@ export default function ContactPageContent({
                 어떤 창을 바꾸시나요?
               </h2>
               <p>{region.guide}</p>
+              {area && (
+                <div className="region-advice">
+                  <h3>{area.heading}</h3>
+                  <p>{area.advice}</p>
+                  <h3>샤시 교체 견적에 필요한 정보</h3>
+                  <p>샤시·샷시·섀시로 부르는 주거용 창호의 교체 상담입니다. 주소, 건물 유형, 층수, 창 사진과 교체 수량을 준비해주세요. 유리 사양, 철거·폐기물 처리, 마감 및 장비 비용의 포함 여부를 견적에서 확인하세요.</p>
+                  <h3>방문 및 시공 범위는 어떻게 정하나요?</h3>
+                  <p>상담 접수 후 주소와 작업 조건을 확인해 방문·시공 가능 여부를 안내합니다. 일정, 비용과 보증 조건은 개별 견적에서 확인해주세요.</p>
+                  <h3>창틀을 그대로 두고 유리만 바꿀 수 있나요?</h3>
+                  <p>기존 창틀 상태와 유리 고정 구조에 따라 달라집니다. 전체 창 사진과 손상 부위를 함께 보내주시면 실측에서 확인할 항목을 안내합니다.</p>
+                  <p><Link href="/services">창호 시공 서비스 안내</Link> · <Link href="/areas">시공 가능 지역 확인</Link></p>
+                </div>
+              )}
               <a className="contact-region-cta" href="#estimate-form">
                 주소 입력하고 상담 시작하기 <Arrow />
               </a>
             </div>
           </div>
         </section>
-      )}
-      {directory.length > 0 && (
-        <nav
-          className="contact-region-directory container-content"
-          aria-label="지역별 창호 상담"
-        >
-          <h2>{region ? `${region.name} 세부 지역별 창호 상담` : "전국 지역별 창호 상담"}</h2>
-          <div className="contact-region-links">
-            {directory.map((item) => (
-              <Link key={item.slug} href={regionPath(item)} prefetch={false}>
-                {item.name} 창호 교체 상담
-              </Link>
-            ))}
-          </div>
-        </nav>
       )}
       <ContactSections />
       <section className="estimate-guide" id="estimate-guide">

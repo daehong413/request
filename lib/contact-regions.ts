@@ -1,3 +1,4 @@
+import serviceAreaData from "./data/service-areas.json";
 import regionData from "./data/contact-regions.json";
 import { siteConfig } from "./site-config";
 
@@ -18,8 +19,13 @@ for (const region of regionData.regions) {
   regionNameCounts.set(region.name, (regionNameCounts.get(region.name) ?? 0) + 1);
 }
 
-// 지역 등록과 URL은 data/contact-regions.json만 기준으로 사용합니다.
-export const contactRegions: ContactRegion[] = regionData.regions.map(
+// 기존 행정구역 URL을 보존하고 별도 상담 권역에 필요한 주소만 추가합니다.
+export const contactRegions: ContactRegion[] = [
+  ...regionData.regions,
+  ...serviceAreaData
+    .filter((area) => !regionData.regions.some((region) => region.slug === area.slug))
+    .map((area) => ({ ...area, level: "시" as const, parentSlug: undefined, code: undefined })),
+].map(
   (region) => ({
     ...region,
     level: region.level as ContactRegion["level"],
@@ -68,4 +74,13 @@ export function regionPath(region: ContactRegion) {
 export function regionAncestors(region: ContactRegion): ContactRegion[] {
   const parent = region.parentSlug && getContactRegion(region.parentSlug);
   return parent ? [...regionAncestors(parent), parent] : [];
+}
+
+// Consultation areas are curated separately from administrative subdivisions.
+export const serviceAreas = serviceAreaData.map((area) => ({
+  ...area,
+  region: regionsBySlug.get(area.slug)!,
+}));
+export function getServiceArea(slug: string) {
+  return serviceAreas.find((area) => area.slug === slug);
 }

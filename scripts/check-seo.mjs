@@ -2,11 +2,15 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const regions = JSON.parse(readFileSync(new URL('../lib/data/contact-regions.json', import.meta.url), 'utf8')).regions;
+const areas = JSON.parse(readFileSync(new URL('../lib/data/service-areas.json', import.meta.url), 'utf8'));
+assert.equal(areas.length, 17);
+const areaSlugs = new Set(areas.map((area) => area.slug));
+assert.equal(areaSlugs.size, 17);
 const base = process.argv[2] ?? 'http://localhost:3107';
 const configuredOrigin = process.env.SITE_URL ?? 'https://www.kmwindow.com';
 const canonicalOrigin = configuredOrigin === 'https://kmwindow.com' ? 'https://www.kmwindow.com' : configuredOrigin;
 const titles = new Set();
-for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '/contact/부산', '/contact/부산동', '/contact/망포동', '/contact/분당정자동', '/contact/장안정자동']) {
+for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '/contact/부산동', '/contact/망포동', '/contact/분당정자동', '/contact/장안정자동', '/contact/광주', '/contact/전남광주', '/areas', ...areas.map((area) => `/contact/${area.slug}`)]) {
   const response = await fetch(new URL(path, base));
   assert.equal(response.status, 200, path);
   const html = await response.text();
@@ -19,7 +23,7 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
   assert.ok(html.includes('content="summary_large_image"'), `${path}: social card`);
   for (const name of ['robots', 'googlebot']) {
     const directives = html.match(new RegExp(`<meta name="${name}" content="([^"]+)"`))?.[1]?.split(/,\s*/);
-    assert.ok(directives?.includes(path.startsWith('/contact/') ? 'noindex' : 'index'), `${path}: ${name} indexing`);
+    assert.ok(directives?.includes(path.startsWith('/contact/') && !areaSlugs.has(path.split('/').at(-1)) ? 'noindex' : 'index'), `${path}: ${name} indexing`);
     assert.ok(directives?.includes('follow'), `${path}: ${name} follow`);
   }
   const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((match) => JSON.parse(match[1]));
@@ -31,8 +35,10 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
     const breadcrumb = data.find((entry) => entry['@type'] === 'BreadcrumbList');
     assert.equal(breadcrumb.itemListElement.at(-1).item, new URL(path, canonicalOrigin).href);
     if (path.startsWith('/contact/')) {
-      const region = regions.find((item) => item.slug === path.split('/').at(-1));
-      assert.ok(title.includes(`국민창호 ${region.name} 창호 교체`), `${path}: brand, region and service title`);
+      const slug = path.split('/').at(-1);
+      const area = areas.find((item) => item.slug === slug);
+      const region = regions.find((item) => item.slug === slug) ?? area;
+      assert.ok(title.includes(area ? `${region.name} 샤시 교체·창호 견적 상담 | 국민창호` : `국민창호 ${region.name} 창호 교체`), `${path}: brand, region and service title`);
       const heading = html.match(/<h1[^>]*>(.*?)<\/h1>/s)?.[1];
       assert.ok(heading.includes(`${region.name} 창호 교체`), `${path}: region and service H1`);
       const service = data.find((entry) => entry['@type'] === 'Service');
@@ -41,6 +47,8 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
       assert.ok(html.includes(service.description), `${path}: structured description is visible`);
     }
   }
+  if (path === '/contact' || path.startsWith('/contact/')) assert.ok(!html.includes('contact-region-directory'));
+  if (path === '/areas') for (const area of areas) assert.ok(html.includes(`/contact/${encodeURIComponent(area.slug)}`));
   console.log('PASS', path);
 }
 for (const [oldPath, newPath] of [['망포', '망포동'], ['부산광역시', '부산'], ['분당정자', '분당정자동']]) {
@@ -53,7 +61,7 @@ assert.equal(missing.status, 404);
 assert.ok((await missing.text()).includes('content="noindex"'));
 const sitemap = await (await fetch(new URL('/sitemap.xml', base))).text();
 const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
-assert.deepEqual(urls, ['/', '/about', '/services', '/contact'].map((path) => new URL(path, canonicalOrigin).href));
+assert.deepEqual(urls, ['/', '/about', '/services', '/contact', '/areas', ...areas.map((area) => `/contact/${area.slug}`)].map((path) => new URL(path, canonicalOrigin).href));
 assert.equal(new Set(urls).size, urls.length);
 assert.ok(urls.every((url) => url.startsWith(canonicalOrigin + '/')));
 assert.ok(!urls.includes(new URL('/contact/망포', canonicalOrigin).href));

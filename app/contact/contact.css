@@ -2017,6 +2017,10 @@
   padding: clamp(24px, 4vw, 48px);
   background: #edf3f9;
 }
+.region-advice { max-width: 720px; margin-top: 32px; }
+.region-advice h3 { margin: 24px 0 10px; font-size: 19px; font-weight: 700; line-height: 1.5; }
+.region-advice p { color: var(--estimate-muted); font-size: 16px; line-height: 1.8; }
+.region-advice a { display: inline-block; padding-block: 12px; color: var(--color-primary); text-decoration: underline; text-underline-offset: 4px; }
 .contact-region-eyebrow {
   margin-bottom: 20px;
   color: #085caa;
