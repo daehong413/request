@@ -64,11 +64,13 @@ export function getContactRegion(slug: string) {
   } catch {
     return undefined;
   }
-  return regionsBySlug.get(name);
+  const area = serviceAreaData.find((item) => item.urlSlug === name);
+  return regionsBySlug.get(area?.slug ?? name);
 }
 
 export function regionPath(region: ContactRegion) {
-  return `/contact/${encodeURIComponent(region.slug)}`;
+  const area = serviceAreaData.find((item) => item.slug === region.slug);
+  return `/contact/${area?.urlSlug ?? encodeURIComponent(region.slug)}`;
 }
 
 export function regionAncestors(region: ContactRegion): ContactRegion[] {
