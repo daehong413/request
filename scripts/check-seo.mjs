@@ -51,7 +51,19 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
   if (path === '/areas') for (const area of areas) assert.ok(html.includes(`/contact/${area.urlSlug}`));
   console.log('PASS', path);
 }
-for (const [oldPath, newPath] of [['망포', '망포동'], ['부산광역시', 'busan'], ['분당정자', '분당정자동'], ...areas.map((area) => [area.slug, area.urlSlug])]) {
+for (const area of areas) {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(new URL(`/contact/${encodeURIComponent(area.slug)}`, base), { redirect: 'manual' });
+    assert.equal(res.status, 200, `${area.slug}: no redirect`);
+    assert.equal(res.headers.get('location'), null);
+    const html = await res.text();
+    for (const name of ['robots', 'googlebot']) {
+      assert.ok(html.includes(`<meta name="${name}" content="noindex, follow"`), `${area.slug}: ${name} noindex`);
+    }
+    assert.equal(new URL(html.match(/rel="canonical" href="([^"]+)"/)?.[1]).href, new URL(`/contact/${area.urlSlug}`, canonicalOrigin).href);
+  }
+}
+for (const [oldPath, newPath] of [['망포', '망포동'], ['부산광역시', 'busan'], ['분당정자', '분당정자동']]) {
   // Repeat requests to catch redirects whose Location disappears on a cache hit.
   for (let attempt = 0; attempt < 2; attempt++) {
   const res = await fetch(new URL(`/contact/${oldPath}`, base), { redirect: 'manual', headers: { 'user-agent': 'Googlebot' } });

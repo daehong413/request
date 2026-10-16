@@ -14,11 +14,7 @@ type Props = { params: { region: string } };
 
 function resolveRegion(slug: string) {
   const region = getContactRegion(slug);
-  if (region) {
-    const area = getServiceArea(region.slug);
-    if (area && slug !== area.urlSlug) permanentRedirect(regionPath(region));
-    return region;
-  }
+  if (region) return region;
   const legacyRegion = getLegacyContactRegion(slug);
   if (legacyRegion) permanentRedirect(regionPath(legacyRegion));
   notFound();
@@ -34,7 +30,7 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: Props) {
   const region = resolveRegion(params.region);
   const area = getServiceArea(region.slug);
-  if (area) {
+  if (area && params.region === area.urlSlug) {
     return pageMetadata(
       `${region.name} 샤시 교체·창호 견적 상담 | 국민창호`,
       `${region.name} 샤시·창호 교체 상담. ${area.advice}`,
@@ -43,7 +39,7 @@ export function generateMetadata({ params }: Props) {
   }
   return {
     ...pageMetadata(region.title, region.description, regionPath(region)),
-    // 지역별 고유 콘텐츠가 준비되기 전까지 상담용으로만 유지합니다.
+    // 한글 지역 주소와 세부 지역은 상담용으로 유지하고 검색에서는 제외합니다.
     robots: {
       index: false,
       follow: true,
