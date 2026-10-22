@@ -1,5 +1,6 @@
 import serviceAreaData from "./data/service-areas.json";
 import regionData from "./data/contact-regions.json";
+import regionUrlData from "./data/region-url-slugs.json";
 import { siteConfig } from "./site-config";
 
 export type ContactRegion = {
@@ -38,27 +39,21 @@ export const contactRegions: ContactRegion[] = [
 const regionsBySlug = new Map(
   contactRegions.map((region) => [region.slug, region]),
 );
-const regionsByCode = new Map(contactRegions.map((region) => [region.code, region]));
+const regionUrlSlugs: Record<string, string> = regionUrlData;
 // 모든 페이지에 전체 목록을 반복하지 않고, 상위 → 하위 지역으로 탐색합니다.
 export function contactRegionChildren(parentSlug?: string) {
   return contactRegions.filter((region) => region.parentSlug === parentSlug);
 }
 
 export function getContactRegion(slug: string) {
-  // 공개 URL은 영문 광역 이름과 local-지역코드만 허용합니다.
+  // 공개 URL은 등록된 영문 지역명만 허용합니다.
   let name: string;
   try {
     name = decodeURIComponent(slug).normalize("NFC");
   } catch {
     return undefined;
   }
-  const area = serviceAreaData.find((item) => item.urlSlug === name);
-  const code = /^local-(\d{10})$/.exec(name)?.[1];
-  if (code) {
-    const region = regionsByCode.get(code);
-    return region && isRegionSearchTarget(region) ? region : undefined;
-  }
-  return area ? regionsBySlug.get(area.slug) : undefined;
+  return regionsByUrlSlug.get(name);
 }
 
 export function isRegionSearchTarget(region: ContactRegion) {
@@ -68,8 +63,9 @@ export function isRegionSearchTarget(region: ContactRegion) {
 export function regionUrlSlug(region: ContactRegion) {
   const area = serviceAreaData.find((item) => item.slug === region.slug);
   if (area) return area.urlSlug;
-  if (!region.code) throw new Error(`지역 코드가 없습니다: ${region.slug}`);
-  return `local-${region.code}`;
+  const slug = regionUrlSlugs[region.slug];
+  if (!slug) throw new Error(`영문 지역명 주소가 없습니다: ${region.slug}`);
+  return slug;
 }
 
 export function regionPath(region: ContactRegion) {
@@ -77,6 +73,14 @@ export function regionPath(region: ContactRegion) {
 }
 
 export const searchableContactRegions = contactRegions.filter(isRegionSearchTarget);
+const regionsByUrlSlug = new Map<string, ContactRegion>();
+for (const region of searchableContactRegions) {
+  const slug = regionUrlSlug(region);
+  if (!/^[a-z]+(?:-[a-z]+)*$/.test(slug) || regionsByUrlSlug.has(slug)) {
+    throw new Error(`잘못되거나 중복된 영문 지역명 주소: ${slug}`);
+  }
+  regionsByUrlSlug.set(slug, region);
+}
 
 export function regionAncestors(region: ContactRegion): ContactRegion[] {
   const parent = region.parentSlug && regionsBySlug.get(region.parentSlug);

@@ -22,7 +22,7 @@ function resolveRegion(slug: string) {
 }
 
 export function generateStaticParams() {
-  // 도·시·군·구의 영문·코드형 주소만 제공합니다.
+  // 도·시·군·구의 영문 지역명 주소만 제공합니다.
   return contactRegions
     .filter(isRegionSearchTarget)
     .map((region) => ({ region: regionUrlSlug(region) }));
