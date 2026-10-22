@@ -1,51 +1,41 @@
-import { notFound, permanentRedirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import ContactPageContent from "@/components/ContactPageContent";
 import {
   contactRegions,
   getServiceArea,
   getContactRegion,
-  getLegacyContactRegion,
   regionPath,
+  regionUrlSlug,
+  isRegionSearchTarget,
 } from "@/lib/contact-regions";
 import { pageMetadata } from "@/lib/seo";
 import "../contact.css";
 
 type Props = { params: { region: string } };
 
+export const dynamicParams = false;
+
 function resolveRegion(slug: string) {
   const region = getContactRegion(slug);
-  if (region) return region;
-  const legacyRegion = getLegacyContactRegion(slug);
-  if (legacyRegion) permanentRedirect(regionPath(legacyRegion));
+  if (region && isRegionSearchTarget(region)) return region;
   notFound();
 }
 
 export function generateStaticParams() {
-  // 광역·시·군·구는 미리 생성하고 읍·면·동은 첫 요청 시 생성해 캐시합니다.
+  // 도·시·군·구의 영문·코드형 주소만 제공합니다.
   return contactRegions
-    .filter(({ level }) => !["읍", "면", "동"].includes(level))
-    .map((region) => ({ region: getServiceArea(region.slug)?.urlSlug ?? region.slug }));
+    .filter(isRegionSearchTarget)
+    .map((region) => ({ region: regionUrlSlug(region) }));
 }
 
 export function generateMetadata({ params }: Props) {
   const region = resolveRegion(params.region);
   const area = getServiceArea(region.slug);
-  if (area && params.region === area.urlSlug) {
-    return pageMetadata(
-      `${region.name} 샤시 교체·창호 견적 상담 | 국민창호`,
-      `${region.name} 샤시·창호 교체 상담. ${area.advice}`,
-      regionPath(region),
-    );
-  }
-  return {
-    ...pageMetadata(region.title, region.description, regionPath(region)),
-    // 한글 지역 주소와 세부 지역은 상담용으로 유지하고 검색에서는 제외합니다.
-    robots: {
-      index: false,
-      follow: true,
-      googleBot: { index: false, follow: true },
-    },
-  };
+  return pageMetadata(
+    area ? `${region.name} 샤시 교체·창호 견적 상담 | 국민창호` : `${region.fullName} 샤시 교체·창호 견적 상담 | 국민창호`,
+    area ? `${region.name} 샤시·창호 교체 상담. ${area.advice}` : region.description,
+    regionPath(region),
+  );
 }
 
 export default function RegionContactPage({ params }: Props) {

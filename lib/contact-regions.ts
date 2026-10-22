@@ -19,7 +19,7 @@ for (const region of regionData.regions) {
   regionNameCounts.set(region.name, (regionNameCounts.get(region.name) ?? 0) + 1);
 }
 
-// 기존 행정구역 URL을 보존하고 별도 상담 권역에 필요한 주소만 추가합니다.
+// 지역명과 계층은 내부 데이터로 관리하고 URL은 별도로 생성합니다.
 export const contactRegions: ContactRegion[] = [
   ...regionData.regions,
   ...serviceAreaData
@@ -39,25 +39,13 @@ const regionsBySlug = new Map(
   contactRegions.map((region) => [region.slug, region]),
 );
 const regionsByCode = new Map(contactRegions.map((region) => [region.code, region]));
-const legacyRegionsBySlug = new Map(
-  regionData.legacySlugs.map(({ slug, code }) => [slug, regionsByCode.get(code)]),
-);
-
-export function getLegacyContactRegion(slug: string) {
-  try {
-    return legacyRegionsBySlug.get(decodeURIComponent(slug).normalize("NFC"));
-  } catch {
-    return undefined;
-  }
-}
-
 // 모든 페이지에 전체 목록을 반복하지 않고, 상위 → 하위 지역으로 탐색합니다.
 export function contactRegionChildren(parentSlug?: string) {
   return contactRegions.filter((region) => region.parentSlug === parentSlug);
 }
 
 export function getContactRegion(slug: string) {
-  // 한글 URL은 라우터/요청 경로에 따라 퍼센트 인코딩된 상태로 전달될 수 있습니다.
+  // 공개 URL은 영문 광역 이름과 local-지역코드만 허용합니다.
   let name: string;
   try {
     name = decodeURIComponent(slug).normalize("NFC");
@@ -65,16 +53,33 @@ export function getContactRegion(slug: string) {
     return undefined;
   }
   const area = serviceAreaData.find((item) => item.urlSlug === name);
-  return regionsBySlug.get(area?.slug ?? name);
+  const code = /^local-(\d{10})$/.exec(name)?.[1];
+  if (code) {
+    const region = regionsByCode.get(code);
+    return region && isRegionSearchTarget(region) ? region : undefined;
+  }
+  return area ? regionsBySlug.get(area.slug) : undefined;
+}
+
+export function isRegionSearchTarget(region: ContactRegion) {
+  return ["도", "시", "군", "구"].includes(region.level);
+}
+
+export function regionUrlSlug(region: ContactRegion) {
+  const area = serviceAreaData.find((item) => item.slug === region.slug);
+  if (area) return area.urlSlug;
+  if (!region.code) throw new Error(`지역 코드가 없습니다: ${region.slug}`);
+  return `local-${region.code}`;
 }
 
 export function regionPath(region: ContactRegion) {
-  const area = serviceAreaData.find((item) => item.slug === region.slug);
-  return `/contact/${area?.urlSlug ?? encodeURIComponent(region.slug)}`;
+  return `/contact/${encodeURIComponent(regionUrlSlug(region))}`;
 }
 
+export const searchableContactRegions = contactRegions.filter(isRegionSearchTarget);
+
 export function regionAncestors(region: ContactRegion): ContactRegion[] {
-  const parent = region.parentSlug && getContactRegion(region.parentSlug);
+  const parent = region.parentSlug && regionsBySlug.get(region.parentSlug);
   return parent ? [...regionAncestors(parent), parent] : [];
 }
 

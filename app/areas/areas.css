@@ -9,6 +9,17 @@
 .areas-name svg { color: var(--color-primary); }
 .areas-service, .areas-detail { display: block; margin-top: 12px; font-size: 15px; }
 .areas-detail { color: var(--color-muted); }
+.areas-districts { margin-block: 40px; }
+.areas-districts h2 { font-size: 26px; font-weight: 700; }
+.areas-districts > p { margin-block: 12px 24px; color: var(--color-muted); }
+.areas-districts details { border-top: 1px solid var(--color-line); }
+.areas-districts details:last-child { border-bottom: 1px solid var(--color-line); }
+.areas-districts summary { min-height: 64px; padding: 20px 4px; cursor: pointer; font-weight: 600; }
+.areas-districts summary span { margin-left: 16px; color: var(--color-muted); font-size: 14px; font-weight: 400; }
+.areas-districts nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 4px 20px; padding: 0 8px 24px; }
+.areas-districts nav a { padding-block: 12px; color: var(--color-primary); line-height: 1.6; }
+.areas-districts a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.areas-districts summary:focus-visible, .areas-districts a:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 4px; }
 .areas-note { padding: 28px; border-radius: 16px; background: var(--color-cloud); }
 .areas-note h2 { font-size: 22px; font-weight: 700; }
 .areas-note p { max-width: 760px; margin-block: 16px; line-height: 1.8; color: var(--color-muted); }

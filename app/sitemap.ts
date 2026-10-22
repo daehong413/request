@@ -1,4 +1,4 @@
-import { serviceAreas, regionPath } from "@/lib/contact-regions";
+import { searchableContactRegions, regionPath } from "@/lib/contact-regions";
 import type { MetadataRoute } from "next";
 import { getSiteOrigin, isSearchIndexable } from "@/lib/seo";
 
@@ -11,7 +11,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/services",
     "/contact",
     "/areas",
-    ...serviceAreas.map(({ region }) => regionPath(region)),
+    ...searchableContactRegions.map(regionPath),
   ].map((path) => ({
     url: new URL(path, origin).href,
   }));

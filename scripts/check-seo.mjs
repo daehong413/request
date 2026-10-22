@@ -4,13 +4,18 @@ import { readFileSync } from 'node:fs';
 const regions = JSON.parse(readFileSync(new URL('../lib/data/contact-regions.json', import.meta.url), 'utf8')).regions;
 const areas = JSON.parse(readFileSync(new URL('../lib/data/service-areas.json', import.meta.url), 'utf8'));
 assert.equal(areas.length, 17);
-const areaSlugs = new Set(areas.map((area) => area.urlSlug));
-assert.equal(areaSlugs.size, 17);
+const areaBySlug = new Map(areas.map((area) => [area.slug, area]));
+const allRegions = [...regions, ...areas.filter((area) => !regions.some((region) => region.slug === area.slug)).map((area) => ({ ...area, level: '시' }))];
+const eligible = allRegions.filter((region) => ['도', '시', '군', '구'].includes(region.level));
+const regionPath = (region) => `/contact/${areaBySlug.get(region.slug)?.urlSlug ?? `local-${region.code}`}`;
+const indexedRegions = new Map(eligible.map((region) => [regionPath(region), region]));
+assert.equal(indexedRegions.size, eligible.length);
+const corePaths = ['/', '/about', '/services', '/contact', '/areas'];
 const base = process.argv[2] ?? 'http://localhost:3107';
 const configuredOrigin = process.env.SITE_URL ?? 'https://www.kmwindow.com';
 const canonicalOrigin = configuredOrigin === 'https://kmwindow.com' ? 'https://www.kmwindow.com' : configuredOrigin;
 const titles = new Set();
-for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '/contact/부산동', '/contact/망포동', '/contact/분당정자동', '/contact/장안정자동', '/contact/광주', '/contact/전남광주', '/areas', ...areas.map((area) => `/contact/${area.urlSlug}`)]) {
+for (const path of [...corePaths, ...indexedRegions.keys()]) {
   const response = await fetch(new URL(path, base), { redirect: 'manual' });
   assert.equal(response.status, 200, path);
   const html = await response.text();
@@ -23,7 +28,7 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
   assert.ok(html.includes('content="summary_large_image"'), `${path}: social card`);
   for (const name of ['robots', 'googlebot']) {
     const directives = html.match(new RegExp(`<meta name="${name}" content="([^"]+)"`))?.[1]?.split(/,\s*/);
-    assert.ok(directives?.includes(path.startsWith('/contact/') && !areaSlugs.has(path.split('/').at(-1)) ? 'noindex' : 'index'), `${path}: ${name} indexing`);
+    assert.ok(directives?.includes(path.startsWith('/contact/') && !indexedRegions.has(path) ? 'noindex' : 'index'), `${path}: ${name} indexing`);
     assert.ok(directives?.includes('follow'), `${path}: ${name} follow`);
   }
   const data = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)].map((match) => JSON.parse(match[1]));
@@ -37,8 +42,8 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
     if (path.startsWith('/contact/')) {
       const slug = path.split('/').at(-1);
       const area = areas.find((item) => item.urlSlug === slug);
-      const region = regions.find((item) => item.slug === (area?.slug ?? slug)) ?? area;
-      assert.ok(title.includes(area ? `${region.name} 샤시 교체·창호 견적 상담 | 국민창호` : `국민창호 ${region.name} 창호 교체`), `${path}: brand, region and service title`);
+      const region = indexedRegions.get(path) ?? regions.find((item) => item.slug === slug);
+      assert.ok(title.includes(indexedRegions.has(path) ? `${area ? region.name : region.fullName} 샤시 교체·창호 견적 상담 | 국민창호` : `국민창호 ${region.name} 창호 교체`), `${path}: brand, region and service title`);
       const heading = html.match(/<h1[^>]*>(.*?)<\/h1>/s)?.[1];
       assert.ok(heading.includes(`${region.name} 창호 교체`), `${path}: region and service H1`);
       const service = data.find((entry) => entry['@type'] === 'Service');
@@ -48,38 +53,33 @@ for (const path of ['/', '/about', '/services', '/contact', '/contact/계양', '
     }
   }
   if (path === '/contact' || path.startsWith('/contact/')) assert.ok(!html.includes('contact-region-directory'));
-  if (path === '/areas') for (const area of areas) assert.ok(html.includes(`/contact/${area.urlSlug}`));
+  if (path === '/areas') for (const target of indexedRegions.keys()) assert.ok(html.includes(target), `directory: ${target}`);
   console.log('PASS', path);
 }
-for (const area of areas) {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const res = await fetch(new URL(`/contact/${encodeURIComponent(area.slug)}`, base), { redirect: 'manual' });
-    assert.equal(res.status, 200, `${area.slug}: no redirect`);
-    assert.equal(res.headers.get('location'), null);
-    const html = await res.text();
-    for (const name of ['robots', 'googlebot']) {
-      assert.ok(html.includes(`<meta name="${name}" content="noindex, follow"`), `${area.slug}: ${name} noindex`);
-    }
-    assert.equal(new URL(html.match(/rel="canonical" href="([^"]+)"/)?.[1]).href, new URL(`/contact/${area.urlSlug}`, canonicalOrigin).href);
-  }
+// Removed Korean and retired URLs must return a real 404 without a redirect.
+const removedSlugs = new Set([...eligible.map((region) => region.slug), '망포', '부산광역시', '분당정자', '부산동', '분당정자동']);
+for (const level of ['읍', '면', '동']) {
+  const region = regions.find((region) => region.level === level);
+  removedSlugs.add(region.slug);
+  removedSlugs.add(`local-${region.code}`);
 }
-for (const [oldPath, newPath] of [['망포', '망포동'], ['부산광역시', 'busan'], ['분당정자', '분당정자동']]) {
-  // Repeat requests to catch redirects whose Location disappears on a cache hit.
-  for (let attempt = 0; attempt < 2; attempt++) {
-  const res = await fetch(new URL(`/contact/${oldPath}`, base), { redirect: 'manual', headers: { 'user-agent': 'Googlebot' } });
-  assert.equal(res.status, 308, oldPath);
-  assert.ok(res.headers.get('location'), `${oldPath}: redirect Location`);
-  assert.equal(new URL(res.headers.get('location'), base).pathname, `/contact/${encodeURIComponent(newPath)}`);
-  }
+for (const slug of removedSlugs) {
+  const res = await fetch(new URL(`/contact/${encodeURIComponent(slug)}`, base), { redirect: 'manual' });
+  assert.equal(res.status, 404, `${slug}: removed`);
+  assert.equal(res.headers.get('location'), null, `${slug}: no redirect`);
+  assert.ok((await res.text()).includes('content="noindex"'), `${slug}: 404 noindex`);
 }
 const missing = await fetch(new URL('/contact/not-a-real-region', base));
 assert.equal(missing.status, 404);
 assert.ok((await missing.text()).includes('content="noindex"'));
 const sitemap = await (await fetch(new URL('/sitemap.xml', base))).text();
 const urls = [...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map((match) => match[1]);
-assert.deepEqual(urls, ['/', '/about', '/services', '/contact', '/areas', ...areas.map((area) => `/contact/${area.urlSlug}`)].map((path) => new URL(path, canonicalOrigin).href));
+assert.deepEqual(urls, [...corePaths, ...indexedRegions.keys()].map((path) => new URL(path, canonicalOrigin).href));
 assert.equal(new Set(urls).size, urls.length);
-assert.ok(urls.every((url) => url.startsWith(canonicalOrigin + '/')));
+assert.ok(urls.every((url) => url.startsWith(canonicalOrigin + '/') && /^[\x00-\x7F]*$/.test(url)));
+for (const region of regions.filter((region) => ['읍', '면', '동'].includes(region.level))) {
+  assert.ok(!urls.includes(new URL(regionPath(region), canonicalOrigin).href), `sitemap excludes ${region.slug}`);
+}
 assert.ok(!urls.includes(new URL('/contact/망포', canonicalOrigin).href));
 const robots = await (await fetch(new URL('/robots.txt', base))).text();
 assert.ok(robots.includes('Allow: /'));
@@ -87,4 +87,4 @@ assert.ok(robots.includes(`Sitemap: ${canonicalOrigin}/sitemap.xml`));
 for (const asset of ['/og-image.png', '/favicon.ico', '/icon.png', '/icon.svg', '/apple-icon.png']) {
   assert.equal((await fetch(new URL(asset, base))).status, 200, asset);
 }
-console.log(`PASS redirects, 404/noindex, ${urls.length} sitemap URLs, robots and images`);
+console.log(`PASS removed Korean/legacy URLs return 404, ${urls.length} sitemap URLs, robots and images`);
