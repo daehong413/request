@@ -6,7 +6,7 @@
 export const siteConfig = {
   name: "국민창호",
   tagline: "여닫을 때마다, 한결같이",
-  phone: "010-2594-1794",
+  phone: "010-5959-1789",
   phoneHref: "tel:01025941794",
   // kakaoUrl: "https://pf.kakao.com/_xxxxxx",
   email: "dh@kmwindow.com",
